@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scaler Student Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        bgDark: '#0B0E14',
+                        surface: '#10141D',
+                        borderDark: '#1E2638',
+                        navActiveBg: '#212C45',
+                        navActiveText: '#4F85FF',
+                        navInactiveText: '#8492A6',
+                        statusAbsentBg: 'rgba(255, 76, 76, 0.1)',
+                        statusAbsentText: '#FF4C4C',
+                        statusPresentBg: 'rgba(34, 197, 94, 0.1)',
+                        statusPresentText: '#22C55E'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1E2638; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4F85FF; }
+        
+        body { background-color: #0B0E14; color: white; font-family: 'Inter', sans-serif; }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238492A6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1em;
+            padding-right: 2.5rem !important;
+        }
+    </style>
+</head>
+<body class="bg-bgDark text-white font-sans antialiased overflow-x-hidden">
+
+    <!-- LOGIN OVERLAY MODAL -->
+    <div id="loginOverlay" class="fixed inset-0 z-[100] bg-bgDark flex items-center justify-center p-4">
+        <div class="bg-surface border border-borderDark rounded-2xl p-8 max-w-md w-full flex flex-col items-center shadow-2xl">
+            <!-- Scaler Logo -->
+            <div class="flex items-center gap-2 mb-6">
+                <img src="Scaler Logo.png" alt="Scaler Logo" class="h-8 w-auto">
+                <div class="flex flex-col justify-center leading-none">
+                    <span class="font-bold text-xl tracking-wide">SCALER</span>
+                    <span class="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">School of Technology</span>
+                </div>
+            </div>
+
+            <h2 class="text-xl font-bold mb-1 text-white">Student Login</h2>
+            <p class="text-xs text-gray-400 mb-6 text-center">Enter your email address and password to access the dashboard.</p>
+
+            <form id="loginForm" onsubmit="handleHardcodedLogin(event)" class="w-full flex flex-col gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label for="loginEmail" class="text-xs font-medium text-gray-300">Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email" required
+                        class="bg-bgDark border border-borderDark rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-[#4F85FF] transition-colors">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="loginPassword" class="text-xs font-medium text-gray-300">Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required
+                        class="bg-bgDark border border-borderDark rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-[#4F85FF] transition-colors">
+                </div>
+
+                <div id="loginError" class="hidden text-xs text-[#FF4C4C] bg-statusAbsentBg border border-statusAbsentText/20 px-3 py-2 rounded-lg text-center font-medium">
+                    Access Denied: Invalid email or password.
+                </div>
+
+                <button type="submit" class="bg-[#4F85FF] hover:bg-[#3b6edc] text-white font-medium text-sm py-2.5 px-4 rounded-xl transition-colors mt-2 flex items-center justify-center gap-2">
+                    <span>Sign In</span>
+                    <i class="ph ph-arrow-right"></i>
+                </button>
+            </form>
+
+            <p class="text-[11px] text-gray-500 mt-6">Restricted to authorized student accounts only.</p>
+        </div>
+    </div>
+
+    <!-- Navbar (top, fixed) -->
+    <nav class="fixed top-0 w-full h-16 border-b border-borderDark bg-bgDark z-50 flex items-center justify-between px-4">
+        <div class="flex items-center gap-2">
+            <button class="text-gray-400 hover:text-white mr-2"><i class="ph ph-list text-2xl"></i></button>
+            <img src="Scaler Logo.png" alt="Scaler Logo" class="h-7 w-auto cursor-pointer">
+            <div class="flex flex-col justify-center leading-none">
+                <span class="font-bold text-lg tracking-wide">SCALER</span>
+                <span class="text-[9px] text-gray-400 uppercase tracking-widest mt-0.5">School of Technology</span>
+            </div>
+            <div class="bg-[#1e3a8a]/40 text-blue-400 text-xs px-3 py-1 rounded-full ml-4 font-medium border border-[#1e3a8a]">
+                Student
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <!-- USER AVATAR & DROPDOWN MENU -->
+            <div class="relative" id="userMenuWrapper">
+                <button id="userAvatarBtn" class="bg-purple-600 text-white w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-purple-400">
+                    A
+                </button>
+
+                <!-- DROPDOWN CARD -->
+                <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 text-gray-800 z-50">
+                    <!-- User Header Info -->
+                    <div class="flex items-center gap-3 pb-3 border-b border-gray-100">
+                        <div class="w-10 h-10 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center text-base font-bold shrink-0">
+                            A
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <p class="text-sm font-semibold text-gray-900 truncate">Adith A</p>
+                            <p class="text-xs text-gray-500 truncate">adith.25bcs10172@sst.scaler.com</p>
+                        </div>
+                    </div>
+
+                    <!-- Menu Action Links -->
+                    <div class="py-2 space-y-1">
+                        <button onclick="handleManageAccount()" class="flex items-center w-full px-2 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded-lg gap-3 transition-colors">
+                            <i class="ph ph-gear text-gray-500 text-base"></i>
+                            Manage account
+                        </button>
+
+                        <button onclick="handleSignOut()" class="flex items-center w-full px-2 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded-lg gap-3 transition-colors">
+                            <i class="ph ph-sign-out text-gray-500 text-base"></i>
+                            Sign out
+                        </button>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="pt-2 border-t border-gray-100 text-center">
+                        <span class="text-[11px] text-gray-400">
+                            Secured by <span class="font-semibold text-gray-600">scaler</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Expanded Sidebar (left, fixed) -->
+    <aside class="fixed left-0 w-[240px] top-16 bottom-0 border-r border-borderDark bg-bgDark flex flex-col py-4 gap-1 z-40 overflow-y-auto overflow-x-hidden">
+        <button id="nav-dashboard" onclick="switchView('dashboard')" class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl bg-navActiveBg text-navActiveText transition-colors cursor-pointer text-sm font-medium">
+            <i class="ph-fill ph-house text-xl shrink-0"></i>
+            <span>Home</span>
+        </button>
+        <button id="nav-announcements" onclick="switchView('announcements')" class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium">
+            <i class="ph-fill ph-megaphone text-xl shrink-0"></i>
+            <span>Announcements</span>
+        </button>
+        <button id="nav-attendance" onclick="switchView('attendance')" class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium">
+            <i class="ph-fill ph-clipboard-text text-xl shrink-0"></i>
+            <span>Attendance</span>
+        </button>
+        <button id="nav-face-photos" onclick="switchView('face-photos')" class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium">
+            <i class="ph ph-corners-out text-xl shrink-0"></i><span>Face Photos</span>
+        </button>
+        <button id="nav-results" onclick="switchView('results')" class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium">
+            <i class="ph ph-graduation-cap text-xl shrink-0"></i><span>Results</span>
+        </button>
+        <button id="nav-seating" onclick="switchView('seating')" class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium">
+            <i class="ph ph-armchair text-xl shrink-0"></i><span>Seating</span>
+        </button>
+        <button id="nav-credits" onclick="switchView('credits')" class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium">
+            <i class="ph ph-chart-bar text-xl shrink-0"></i><span>Credits</span>
+        </button>
+        <button id="nav-immersion" onclick="switchView('immersion')" class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium">
+            <i class="ph ph-briefcase text-xl shrink-0"></i><span>Immersion</span>
+        </button>
+        
+        <!-- Redirect Links -->
+        <a href="https://hostel.sst-dashboard.com/dashboard" target="_blank" class="flex items-center justify-between mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium relative">
+            <div class="flex items-center gap-3"><i class="ph ph-buildings text-xl shrink-0"></i><span>Hostel</span></div>
+            <span class="w-1.5 h-1.5 bg-[#3b82f6] rounded-full mr-1"></span>
+        </a>
+        <a href="https://mess.sst-dashboard.com/student/dashboard" target="_blank" class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium">
+            <i class="ph ph-fork-knife text-xl shrink-0"></i><span>Mess</span>
+        </a>
+        <a href="https://book.sst-dashboard.com/user/dashboard" target="_blank" class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium">
+            <i class="ph ph-calendar-blank text-xl shrink-0"></i><span>Booking</span>
+        </a>
+        <a href="https://resolve.sst-dashboard.com/student/dashboard" target="_blank" class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium">
+            <i class="ph ph-ticket text-xl shrink-0"></i><span>Resolve</span>
+        </a>
+        
+        <button class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium">
+            <i class="ph ph-file-text text-xl shrink-0"></i><span>Policies</span>
+        </button>
+        <div class="flex-grow"></div>
+        <button class="flex items-center gap-3 mx-3 px-3 py-2.5 rounded-xl text-navInactiveText hover:text-white hover:bg-white/[0.03] transition-colors cursor-pointer text-sm font-medium mb-4">
+            <i class="ph ph-bug text-xl shrink-0"></i><span>Report Bug</span>
+        </button>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="ml-[240px] mt-16 p-6 flex flex-col xl:flex-row gap-6 min-h-[calc(100vh-4rem)] text-white font-sans items-start transition-all duration-300">
+        
+        <div class="flex-1 w-full flex flex-col gap-6 min-w-0">
+            
+            <!-- VIEW: Dashboard -->
+            <div id="view-dashboard" class="view-section">
+                <div class="bg-surface border border-borderDark p-5 rounded-2xl mb-6">
+                    <h1 class="text-2xl font-bold mb-1">Dashboard</h1>
+                    <p class="text-gray-400 text-sm">Track attendance, credits, and important updates.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <div class="lg:col-span-7 xl:col-span-8 flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-bold">Attendance</h2>
+                            <a href="#" onclick="switchView('attendance'); return false;" class="text-[#4F85FF] text-sm font-medium hover:underline">View All</a>
+                        </div>
+                        
+                        <div id="dashboard-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Cards injected here via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Important Section -->
+                    <div class="lg:col-span-5 xl:col-span-4 h-full">
+                        <div class="bg-surface rounded-2xl border border-borderDark h-full min-h-[400px] flex flex-col">
+                            <div class="p-5 flex justify-between items-center border-b border-transparent">
+                                <h2 class="text-lg font-bold">Important</h2><a href="#" class="text-[#4F85FF] text-sm hover:underline">See all</a>
+                            </div>
+                            <div class="flex-1 flex items-center justify-center pb-10">
+                                <span class="text-gray-500 text-sm">No upcoming deadlines</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Announcements -->
+            <div id="view-announcements" class="view-section" style="display: none;">
+                <div class="bg-surface border border-borderDark p-5 rounded-2xl mb-6">
+                    <div class="flex items-center gap-3 mb-1 cursor-pointer w-fit group" onclick="switchView('dashboard')">
+                        <button class="text-gray-400 group-hover:text-white transition-colors"><i class="ph ph-caret-left text-xl"></i></button>
+                        <h1 class="text-2xl font-bold">Announcements</h1>
+                    </div>
+                    <p class="text-gray-400 text-sm ml-8">Stay updated with the latest announcements</p>
+                </div>
+
+                <div class="bg-surface border border-borderDark rounded-2xl p-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-bgDark border border-borderDark rounded-2xl py-8 flex flex-col items-center justify-center"><span class="text-4xl font-bold text-[#FF8A00] mb-2">0</span><span class="text-sm text-gray-400">General</span></div>
+                        <div class="bg-bgDark border border-borderDark rounded-2xl py-8 flex flex-col items-center justify-center"><span class="text-4xl font-bold text-[#4F85FF] mb-2">0</span><span class="text-sm text-gray-400">Academic</span></div>
+                        <div class="bg-bgDark border border-borderDark rounded-2xl py-8 flex flex-col items-center justify-center"><span class="text-4xl font-bold text-[#22C55E] mb-2">0</span><span class="text-sm text-gray-400">SIL</span></div>
+                        <div class="bg-bgDark border border-borderDark rounded-2xl py-8 flex flex-col items-center justify-center"><span class="text-4xl font-bold text-[#A855F7] mb-2">0</span><span class="text-sm text-gray-400">Club</span></div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 items-center mb-8">
+                        <div class="flex-1 bg-bgDark border border-borderDark rounded-full px-4 py-2.5 flex items-center gap-2 w-full">
+                            <i class="ph ph-magnifying-glass text-gray-400"></i>
+                            <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-sm w-full text-white placeholder-gray-500">
+                        </div>
+                        <div class="flex gap-4 w-full sm:w-auto">
+                            <select class="bg-bgDark border border-borderDark rounded-full px-4 py-2.5 text-sm text-gray-300 w-full sm:w-48 outline-none">
+                                <option>All Categories</option>
+                                <option>General</option>
+                                <option>Academic</option>
+                            </select>
+                            <button class="bg-bgDark border border-borderDark w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-colors shrink-0">
+                                <i class="ph ph-arrows-down-up"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Attendance -->
+            <div id="view-attendance" class="view-section" style="display: none;">
+                <div class="bg-surface border border-borderDark p-5 rounded-2xl mb-6">
+                    <div class="flex items-center gap-3 mb-1 cursor-pointer w-fit group" onclick="switchView('dashboard')">
+                        <button class="text-gray-400 group-hover:text-white transition-colors"><i class="ph ph-caret-left text-xl"></i></button>
+                        <h1 class="text-2xl font-bold">Attendance History</h1>
+                    </div>
+                    <p class="text-gray-400 text-sm ml-8">View and manage your attendance records</p>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                    <div class="bg-surface border border-borderDark rounded-2xl py-6 flex flex-col items-center justify-center shadow-sm">
+                        <span id="metric-total" class="text-3xl font-bold text-[#4F85FF] mb-1">0</span>
+                        <span class="text-xs text-gray-400 font-medium">Total Classes</span>
+                    </div>
+                    <div class="bg-surface border border-borderDark rounded-2xl py-6 flex flex-col items-center justify-center shadow-sm">
+                        <span id="metric-rate" class="text-3xl font-bold text-[#4F85FF] mb-1">0%</span>
+                        <span class="text-xs text-gray-400 font-medium">Attendance Rate</span>
+                    </div>
+                    <div class="bg-surface border border-borderDark rounded-2xl py-6 flex flex-col items-center justify-center shadow-sm">
+                        <span id="metric-missed" class="text-3xl font-bold text-[#FF4C4C] mb-1">0</span>
+                        <span class="text-xs text-gray-400 font-medium">Classes Missed</span>
+                    </div>
+                    <div class="bg-surface border border-borderDark rounded-2xl py-6 flex flex-col items-center justify-center shadow-sm">
+                        <span id="metric-late" class="text-3xl font-bold text-[#FF8A00] mb-1">0</span>
+                        <span class="text-xs text-gray-400 font-medium">Late</span>
+                    </div>
+                    <div class="bg-surface border border-borderDark rounded-2xl py-6 flex flex-col items-center justify-center shadow-sm col-span-2 lg:col-span-1">
+                        <span id="metric-streak" class="text-3xl font-bold text-[#4F85FF] mb-1">0</span>
+                        <span class="text-xs text-gray-400 font-medium">Consistency Streak</span>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                        <h2 class="text-lg font-bold">Attendance</h2>
+                        <div class="flex flex-wrap gap-3">
+                            <select id="filter-term" class="bg-surface border border-borderDark rounded-full px-4 py-2 text-sm text-gray-300 outline-none hover:border-gray-500 transition-colors cursor-pointer min-w-[100px]">
+                                <option value="Term 5" selected>Term 5</option>
+                            </select>
+                            <select id="filter-subject" onchange="renderAttendance()" class="bg-surface border border-borderDark rounded-full px-4 py-2 text-sm text-gray-300 outline-none hover:border-gray-500 transition-colors cursor-pointer min-w-[200px]">
+                            </select>
+                            <select id="filter-status" onchange="renderAttendance()" class="bg-surface border border-borderDark rounded-full px-4 py-2 text-sm text-gray-300 outline-none hover:border-gray-500 transition-colors cursor-pointer min-w-[120px]">
+                                <option value="All Status">All Status</option>
+                                <option value="Present">Present</option>
+                                <option value="Absent">Absent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="w-full overflow-x-auto pb-4">
+                        <table class="w-full min-w-[800px] text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-borderDark text-xs font-semibold text-gray-400">
+                                    <th class="py-4 px-4 font-medium w-[20%]">Date</th>
+                                    <th class="py-4 px-4 font-medium w-[30%]">Subject</th>
+                                    <th class="py-4 px-4 font-medium w-[40%]">Class Name</th>
+                                    <th class="py-4 px-4 font-medium w-[10%] text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-tbody">
+                            </tbody>
+                        </table>
+                        
+                        <div id="attendance-empty" class="hidden mt-4 border border-dashed border-borderDark rounded-xl p-10 flex items-center justify-center bg-surface/50">
+                            <span class="text-gray-400 text-sm">No attendance records found</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- VIEW: Face Photos -->
+            <div id="view-face-photos" class="view-section w-full" style="display: none;">
+                <div class="fixed top-16 left-[240px] right-0 bottom-0 z-40 flex items-center justify-center bg-bgDark/85 backdrop-blur-sm">
+                    <div class="bg-surface border border-borderDark p-10 rounded-3xl shadow-2xl flex flex-col items-center max-w-[420px] text-center mx-6">
+                        <div class="w-20 h-20 bg-statusPresentBg rounded-full flex items-center justify-center mb-6 border border-statusPresentText/20">
+                            <i class="ph-fill ph-check-circle text-5xl text-statusPresentText"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-white leading-relaxed">Your photos have been successfully recorded</h2>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h1 class="text-2xl font-bold mb-1">Face Photos</h1>
+                    <p class="text-gray-400 text-sm">Used to mark your attendance automatically from classroom photos</p>
+                </div>
+                
+                <div class="bg-surface border border-borderDark rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-10">
+                    <div class="flex items-center gap-4">
+                        <div class="flex gap-1.5">
+                            <div class="w-8 h-2.5 bg-[#4F85FF] rounded-full"></div>
+                            <div class="w-8 h-2.5 bg-[#4F85FF] rounded-full"></div>
+                            <div class="w-8 h-2.5 bg-[#4F85FF] rounded-full"></div>
+                            <div class="w-8 h-2.5 bg-[#4F85FF] rounded-full"></div>
+                            <div class="w-8 h-2.5 bg-[#4F85FF] rounded-full"></div>
+                        </div>
+                        <span class="text-sm font-semibold text-white">5 of 5 required photos</span>
+                    </div>
+                    <span class="text-sm text-gray-400">This cycle closed 12 Aug, 11:59 pm — photos are view-only</span>
+                </div>
+
+                <div class="mb-10">
+                    <h2 class="text-xs font-bold text-gray-400 tracking-wider mb-5 uppercase">Required</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-5">
+                        <div class="flex flex-col gap-3">
+                            <img src="image_2ebf41.jpg" alt="Front" class="w-full aspect-square object-cover rounded-xl border border-borderDark opacity-90 hover:opacity-100 transition-opacity">
+                            <div>
+                                <h3 class="text-sm font-bold text-white mb-1">Front</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Face the camera straight on, neutral expression, no smile</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <img src="https://placehold.co/400x400/1E2638/8492A6?text=Left+Side" alt="Left side" class="w-full aspect-square object-cover rounded-xl border border-borderDark opacity-90 hover:opacity-100 transition-opacity">
+                            <div>
+                                <h3 class="text-sm font-bold text-white mb-1">Left side</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Turn your head to show your left profile (~75°)</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <img src="https://placehold.co/400x400/1E2638/8492A6?text=Right+Side" alt="Right side" class="w-full aspect-square object-cover rounded-xl border border-borderDark opacity-90 hover:opacity-100 transition-opacity">
+                            <div>
+                                <h3 class="text-sm font-bold text-white mb-1">Right side</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Turn your head to show your right profile (~75°)</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <img src="https://placehold.co/400x400/1E2638/8492A6?text=Looking+Up" alt="Looking up" class="w-full aspect-square object-cover rounded-xl border border-borderDark opacity-90 hover:opacity-100 transition-opacity">
+                            <div>
+                                <h3 class="text-sm font-bold text-white mb-1">Looking up</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Tilt your head up (~75°)</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <img src="https://placehold.co/400x400/1E2638/8492A6?text=Looking+Down" alt="Looking down" class="w-full aspect-square object-cover rounded-xl border border-borderDark opacity-90 hover:opacity-100 transition-opacity">
+                            <div>
+                                <h3 class="text-sm font-bold text-white mb-1">Looking down</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Tilt your head down (~75°)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-xs font-bold text-gray-400 tracking-wider mb-5 uppercase">Optional — Improves Recognition</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-5">
+                        <div class="flex flex-col gap-3">
+                            <img src="https://placehold.co/400x400/1E2638/8492A6?text=With+Glasses" alt="With glasses" class="w-full aspect-square object-cover rounded-xl border border-borderDark opacity-90 hover:opacity-100 transition-opacity">
+                            <div>
+                                <h3 class="text-sm font-bold text-white mb-1">With glasses</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Only if you normally wear them</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <div class="w-full aspect-square bg-[#0B0E14] border border-borderDark rounded-xl flex flex-col items-center justify-center text-gray-600">
+                                <i class="ph ph-camera text-2xl mb-2 opacity-60"></i>
+                                <span class="text-[11px] font-medium tracking-wide opacity-60">Not uploaded</span>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-white mb-1">Smiling</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Face the camera and smile</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <div class="w-full aspect-square bg-[#0B0E14] border border-borderDark rounded-xl flex flex-col items-center justify-center text-gray-600">
+                                <i class="ph ph-camera text-2xl mb-2 opacity-60"></i>
+                                <span class="text-[11px] font-medium tracking-wide opacity-60">Not uploaded</span>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-white mb-1">From a distance</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Stand 1.5–2 metres from the camera</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <div class="w-full aspect-square bg-[#0B0E14] border border-borderDark rounded-xl flex flex-col items-center justify-center text-gray-600">
+                                <i class="ph ph-camera text-2xl mb-2 opacity-60"></i>
+                                <span class="text-[11px] font-medium tracking-wide opacity-60">Not uploaded</span>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-white mb-1">Older photo</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">A previous photo if your look has changed (e.g. beard)</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <div class="w-full aspect-square bg-[#0B0E14] border border-borderDark rounded-xl flex flex-col items-center justify-center text-gray-600">
+                                <i class="ph ph-camera text-2xl mb-2 opacity-60"></i>
+                                <span class="text-[11px] font-medium tracking-wide opacity-60">Not uploaded</span>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-white mb-1">Different hairstyle</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">A previous photo with a different hairstyle</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Results -->
+            <div id="view-results" class="view-section w-full" style="display: none;">
+                <div class="bg-surface border border-borderDark p-5 rounded-2xl mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-3 mb-1 cursor-pointer w-fit group" onclick="switchView('dashboard')">
+                            <button class="text-gray-400 group-hover:text-white transition-colors"><i class="ph ph-caret-left text-xl"></i></button>
+                            <h1 class="text-2xl font-bold">Academic Results</h1>
+                        </div>
+                        <p class="text-gray-400 text-sm ml-8">View your academic performance and grades</p>
+                    </div>
+                    <div>
+                        <select class="bg-bgDark border border-borderDark rounded-full px-4 py-2 text-sm text-gray-300 outline-none hover:border-gray-500 transition-colors cursor-pointer min-w-[140px]">
+                            <option>Select Term</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+                    <div class="lg:col-span-4 bg-surface border border-borderDark rounded-2xl p-8 flex flex-col items-center justify-center text-center min-h-[220px]">
+                        <i class="ph ph-graduation-cap text-4xl text-[#4F85FF] mb-4"></i>
+                        <span class="text-xs text-gray-400 font-medium mb-1">Term CGR</span>
+                        <span class="text-4xl font-bold text-white tracking-wide">NA</span>
+                    </div>
+
+                    <div class="lg:col-span-8 flex flex-col justify-between gap-6">
+                        <div class="bg-surface border border-borderDark rounded-2xl p-6 flex flex-col justify-center flex-1">
+                            <div class="flex items-center gap-2 mb-2 text-[#A855F7] font-semibold">
+                                <i class="ph ph-clock text-xl"></i>
+                                <span class="text-base">Results Pending</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">
+                                The Term CGR for this term has not been released yet. Individual subject results appear below as they become available.
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div class="bg-surface border border-borderDark rounded-2xl p-6 flex items-center gap-4">
+                                <i class="ph ph-graduation-cap text-2xl text-[#4F85FF]"></i>
+                                <div>
+                                    <div class="text-xs text-gray-400 font-medium">Total Credits</div>
+                                    <div class="text-2xl font-bold text-white">0</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-surface border border-borderDark rounded-2xl p-6 flex items-center gap-4">
+                                <i class="ph ph-target text-2xl text-[#4F85FF]"></i>
+                                <div>
+                                    <div class="text-xs text-gray-400 font-medium">Subjects</div>
+                                    <div class="text-2xl font-bold text-white">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-surface border border-borderDark rounded-2xl p-16 flex flex-col items-center justify-center text-center min-h-[260px]">
+                    <i class="ph ph-graduation-cap text-4xl text-gray-500 mb-4"></i>
+                    <h3 class="text-base font-bold text-white mb-1">No Results Available</h3>
+                    <p class="text-xs sm:text-sm text-gray-400">Results for this term have not been published yet.</p>
+                </div>
+            </div>
+
+            <!-- VIEW: Seating -->
+            <div id="view-seating" class="view-section w-full" style="display: none;">
+                <div class="bg-surface border border-borderDark p-5 rounded-2xl mb-6">
+                    <div class="flex items-center gap-3 mb-1 cursor-pointer w-fit group" onclick="switchView('dashboard')">
+                        <button class="text-gray-400 group-hover:text-white transition-colors"><i class="ph ph-caret-left text-xl"></i></button>
+                        <h1 class="text-2xl font-bold">Seating Plan</h1>
+                    </div>
+                    <p class="text-gray-400 text-sm ml-8">View your exam seating arrangements and hall numbers</p>
+                </div>
+
+                <div class="bg-surface border border-borderDark rounded-2xl p-16 flex flex-col items-center justify-center text-center min-h-[300px]">
+                    <i class="ph ph-armchair text-4xl text-gray-500 mb-4"></i>
+                    <h3 class="text-lg font-bold text-white mb-1">No examinations are live now.</h3>
+                    <p class="text-xs sm:text-sm text-gray-400 mt-1">Check back closer to scheduled examination dates for seating assignments.</p>
+                </div>
+            </div>
+
+            <!-- VIEW: Credits -->
+            <div id="view-credits" class="view-section w-full" style="display: none;">
+                <div class="bg-surface border border-borderDark p-5 rounded-2xl mb-6">
+                    <div class="flex items-center gap-3 mb-1 cursor-pointer w-fit group" onclick="switchView('dashboard')">
+                        <button class="text-gray-400 group-hover:text-white transition-colors"><i class="ph ph-caret-left text-xl"></i></button>
+                        <h1 class="text-2xl font-bold">Personality Development Credits</h1>
+                    </div>
+                    <p class="text-gray-400 text-sm ml-8">Track your soft skills and leadership credits</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+                    <!-- Overall Progress Card -->
+                    <div class="lg:col-span-8 bg-surface border border-borderDark rounded-2xl p-6">
+                        <h2 class="text-base font-bold text-white mb-0.5">Overall Progress</h2>
+                        <p class="text-xs text-gray-400 mb-6">Your progress towards required personality development credits</p>
+                        
+                        <div class="mb-6">
+                            <div class="flex justify-between text-xs text-gray-300 font-medium mb-2">
+                                <span>8 Credits</span>
+                                <span>8 Required</span>
+                            </div>
+                            <div class="w-full bg-borderDark rounded-full h-1.5 overflow-hidden">
+                                <div class="bg-[#4F85FF] h-full w-full rounded-full"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="bg-bgDark/60 border border-borderDark/80 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                <span class="text-2xl font-bold text-white mb-2">8</span>
+                                <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                                    <i class="ph ph-user text-sm"></i>
+                                    <span>Credits Earned</span>
+                                </div>
+                            </div>
+                            <div class="bg-bgDark/60 border border-borderDark/80 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                <span class="text-2xl font-bold text-white mb-2">8</span>
+                                <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                                    <i class="ph ph-user text-sm"></i>
+                                    <span>Required</span>
+                                </div>
+                            </div>
+                            <div class="bg-bgDark/60 border border-borderDark/80 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                <span class="text-2xl font-bold text-white mb-2">0</span>
+                                <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                                    <i class="ph ph-user text-sm"></i>
+                                    <span>Remaining</span>
+                                </div>
+                            </div>
+                            <div class="bg-bgDark/60 border border-borderDark/80 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                <span class="text-2xl font-bold text-white mb-2">100%</span>
+                                <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                                    <i class="ph ph-user text-sm"></i>
+                                    <span>Completion</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Credits Earned Card -->
+                    <div class="lg:col-span-4 bg-surface border border-borderDark rounded-2xl p-6 flex flex-col items-center justify-center text-center min-h-[220px]">
+                        <span class="text-6xl font-bold text-[#4F85FF] mb-3">8</span>
+                        <span class="text-sm font-medium text-gray-300">Total Credits Earned</span>
+                    </div>
+                </div>
+
+                <!-- Teamwork Category Card (Expandable Dropbox) -->
+                <div class="bg-surface border border-borderDark rounded-2xl overflow-hidden transition-all duration-200">
+                    <div onclick="toggleTeamworkDetails()" class="p-5 flex items-center justify-between cursor-pointer hover:bg-white/[0.01] transition-colors select-none">
+                        <div class="flex items-center gap-4">
+                            <div class="text-[#22C55E] text-2xl flex items-center justify-center">
+                                <i class="ph ph-users"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white">Teamwork</h3>
+                                <p class="text-xs text-gray-400">Contribution through Participation/Volunteering</p>
+                            </div>
+                        </div>
+                        <button class="bg-bgDark/80 border border-borderDark px-4 py-2 rounded-xl text-xs font-medium text-gray-300 flex items-center gap-2 hover:border-gray-500 transition-colors pointer-events-none">
+                            <span>Credits: 8</span>
+                            <i id="teamwork-caret" class="ph ph-caret-up text-xs transition-transform duration-200"></i>
+                        </button>
+                    </div>
+
+                    <!-- Expanded Content Area -->
+                    <div id="teamwork-details" class="border-t border-borderDark p-5 flex flex-col gap-6 bg-bgDark/30">
+                        <!-- Volunteering / Participation Section -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-3 border-l-2 border-[#22C55E] pl-3">
+                                <h4 class="text-xs font-bold text-white tracking-wide uppercase">Volunteering / Participation</h4>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="text-gray-400 border-b border-borderDark/60 text-[10px] uppercase tracking-wider font-semibold">
+                                            <th class="py-2.5 px-3 font-semibold">Count</th>
+                                            <th class="py-2.5 px-3 font-semibold">Credits Earned</th>
+                                            <th class="py-2.5 px-3 font-semibold">Grade</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-borderDark/40 text-gray-300 text-xs">
+                                        <tr>
+                                            <td class="py-3.5 px-3 text-gray-300">N/A</td>
+                                            <td class="py-3.5 px-3 font-medium text-white">2</td>
+                                            <td class="py-3.5 px-3">
+                                                <span class="bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/30 px-2 py-0.5 rounded text-[11px] font-bold inline-block">A*</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-3 flex items-center gap-2 text-xs text-gray-400">
+                                <i class="ph ph-warning text-amber-500 text-sm"></i>
+                                <span>Maximum Credits available only for Volunteering/Participation: 4</span>
+                            </div>
+                        </div>
+
+                        <!-- Position Secured Section -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-3 border-l-2 border-[#FF8A00] pl-3">
+                                <h4 class="text-xs font-bold text-white tracking-wide uppercase">Position Secured</h4>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="text-gray-400 border-b border-borderDark/60 text-[10px] uppercase tracking-wider font-semibold">
+                                            <th class="py-2.5 px-3 font-semibold">Activity</th>
+                                            <th class="py-2.5 px-3 font-semibold">Student Org</th>
+                                            <th class="py-2.5 px-3 font-semibold">Credits Earned</th>
+                                            <th class="py-2.5 px-3 font-semibold">Position Secured</th>
+                                            <th class="py-2.5 px-3 font-semibold">Grade</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-borderDark/40 text-gray-300 text-xs">
+                                        <tr class="hover:bg-white/[0.01]">
+                                            <td class="py-3.5 px-3 font-medium text-white">SA040: SST Harvest Harmony</td>
+                                            <td class="py-3.5 px-3 text-gray-300">N/A</td>
+                                            <td class="py-3.5 px-3 font-medium text-white">2</td>
+                                            <td class="py-3.5 px-3 text-gray-300">N/A</td>
+                                            <td class="py-3.5 px-3">
+                                                <span class="bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/30 px-2 py-0.5 rounded text-[11px] font-bold inline-block">A*</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-white/[0.01]">
+                                            <td class="py-3.5 px-3 font-medium text-white">SA055: Rangmanch</td>
+                                            <td class="py-3.5 px-3 text-gray-300">N/A</td>
+                                            <td class="py-3.5 px-3 font-medium text-white">2</td>
+                                            <td class="py-3.5 px-3 text-gray-300">N/A</td>
+                                            <td class="py-3.5 px-3">
+                                                <span class="bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/30 px-2 py-0.5 rounded text-[11px] font-bold inline-block">A*</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-white/[0.01]">
+                                            <td class="py-3.5 px-3 font-medium text-white">SA068: SST Beats 2.0</td>
+                                            <td class="py-3.5 px-3 text-gray-300">N/A</td>
+                                            <td class="py-3.5 px-3 font-medium text-white">2</td>
+                                            <td class="py-3.5 px-3 text-gray-300">N/A</td>
+                                            <td class="py-3.5 px-3">
+                                                <span class="bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/30 px-2 py-0.5 rounded text-[11px] font-bold inline-block">A*</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Immersion -->
+            <div id="view-immersion" class="view-section w-full" style="display: none;">
+                <div class="bg-surface border border-borderDark p-5 rounded-2xl mb-6">
+                    <div class="flex items-center gap-3 mb-1 cursor-pointer w-fit group" onclick="switchView('dashboard')">
+                        <button class="text-gray-400 group-hover:text-white transition-colors"><i class="ph ph-caret-left text-xl"></i></button>
+                        <h1 class="text-2xl font-bold">Industry Immersion Credits</h1>
+                    </div>
+                    <p class="text-gray-400 text-sm ml-8">Track your industry exposure and internship credits</p>
+                </div>
+
+                <!-- Top Row: Progress + Completed Immersions -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+                    <!-- Overall Progress Card -->
+                    <div class="lg:col-span-8 bg-surface border border-borderDark rounded-2xl p-6">
+                        <h2 class="text-base font-bold text-white mb-0.5">Overall Progress</h2>
+                        <p class="text-xs text-gray-400 mb-6">Your progress towards required industry immersion credits</p>
+                        
+                        <div class="mb-6">
+                            <div class="flex justify-between text-xs text-gray-300 font-medium mb-2">
+                                <span>0 Credits</span>
+                                <span>6 Required</span>
+                            </div>
+                            <div class="w-full bg-borderDark rounded-full h-1.5 overflow-hidden">
+                                <div class="bg-[#4F85FF] h-full w-0 rounded-full"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="bg-bgDark/60 border border-borderDark/80 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                <span class="text-2xl font-bold text-white mb-2">0</span>
+                                <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                                    <i class="ph ph-briefcase text-sm"></i>
+                                    <span>Credits Earned</span>
+                                </div>
+                            </div>
+                            <div class="bg-bgDark/60 border border-borderDark/80 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                <span class="text-2xl font-bold text-white mb-2">6</span>
+                                <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                                    <i class="ph ph-briefcase text-sm"></i>
+                                    <span>Required</span>
+                                </div>
+                            </div>
+                            <div class="bg-bgDark/60 border border-borderDark/80 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                <span class="text-2xl font-bold text-white mb-2">6</span>
+                                <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                                    <i class="ph ph-briefcase text-sm"></i>
+                                    <span>Remaining</span>
+                                </div>
+                            </div>
+                            <div class="bg-bgDark/60 border border-borderDark/80 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                <span class="text-2xl font-bold text-white mb-2">0%</span>
+                                <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                                    <i class="ph ph-briefcase text-sm"></i>
+                                    <span>Completion</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Completed Immersions Card -->
+                    <div class="lg:col-span-4 bg-surface border border-borderDark rounded-2xl p-6 flex flex-col items-center justify-center text-center min-h-[220px]">
+                        <span class="text-6xl font-bold text-[#4F85FF] mb-3">0</span>
+                        <span class="text-sm font-medium text-gray-300">Completed Immersions</span>
+                    </div>
+                </div>
+
+                <!-- Internships Card -->
+                <div class="bg-surface border border-borderDark rounded-2xl overflow-hidden mb-6">
+                    <div class="p-5 flex items-center justify-between border-b border-borderDark">
+                        <div class="flex items-center gap-3">
+                            <div class="text-[#4F85FF] text-xl flex items-center justify-center">
+                                <i class="ph ph-buildings"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white">Internships</h3>
+                                <p class="text-xs text-gray-400">No internships recorded yet</p>
+                            </div>
+                        </div>
+                        <div class="bg-bgDark/80 border border-borderDark px-4 py-2 rounded-xl text-xs font-medium text-gray-300">
+                            Credits: 0
+                        </div>
+                    </div>
+                    <div class="p-10 flex items-center justify-center text-center bg-bgDark/30">
+                        <p class="text-xs sm:text-sm text-gray-400">No company internships recorded yet. Complete internships or industry exposure programs to earn credits.</p>
+                    </div>
+                </div>
+
+                <!-- Innovation Labs Card -->
+                <div class="bg-surface border border-borderDark rounded-2xl overflow-hidden">
+                    <div class="p-5 flex items-center justify-between border-b border-borderDark">
+                        <div class="flex items-center gap-3">
+                            <div class="text-[#4F85FF] text-xl flex items-center justify-center">
+                                <i class="ph ph-lightbulb"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white">Innovation Labs</h3>
+                                <p class="text-xs text-gray-400">No innovation lab participations recorded yet</p>
+                            </div>
+                        </div>
+                        <div class="bg-bgDark/80 border border-borderDark px-4 py-2 rounded-xl text-xs font-medium text-gray-300">
+                            Credits: 0
+                        </div>
+                    </div>
+                    <div class="p-10 flex items-center justify-center text-center bg-bgDark/30">
+                        <p class="text-xs sm:text-sm text-gray-400">No innovation lab activities recorded yet. Participate in research or innovation projects to earn credits.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Persistent Right Sidebar -->
+        <div id="right-sidebar" class="w-full xl:w-[320px] shrink-0 flex flex-col gap-6">
+            <div>
+                <h2 class="text-lg font-bold mb-4">Calendar</h2>
+                <div class="bg-surface border border-borderDark rounded-2xl p-5">
+                    <div class="flex justify-between items-center text-sm mb-4">
+                        <button class="text-gray-400 hover:text-white"><i class="ph ph-caret-left"></i></button>
+                        <span class="font-semibold">October 2026</span>
+                        <button class="text-gray-400 hover:text-white"><i class="ph ph-caret-right"></i></button>
+                    </div>
+                    <div class="grid grid-cols-7 gap-y-3 text-center mb-2 bg-bgDark rounded-xl p-2 pb-4">
+                        <div class="text-xs text-gray-500 mb-2">Su</div><div class="text-xs text-gray-500 mb-2">Mo</div><div class="text-xs text-gray-500 mb-2">Tu</div><div class="text-xs text-gray-500 mb-2">We</div><div class="text-xs text-gray-500 mb-2">Th</div><div class="text-xs text-gray-500 mb-2">Fr</div><div class="text-xs text-gray-500 mb-2">Sa</div>
+                        <div></div><div></div><div></div><div></div>
+                        <div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">1</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">2</div>
+                        <div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">3</div>
+                        <div class="bg-[#4F85FF] rounded-full w-7 h-7 mx-auto flex items-center justify-center text-white text-sm cursor-pointer shadow-md shadow-blue-500/20 font-medium">4</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">5</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">6</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">7</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">8</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">9</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">10</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">11</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">12</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">13</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">14</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">15</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">16</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">17</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">18</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">19</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">20</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">21</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">22</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">23</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">24</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">25</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">26</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">27</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">28</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">29</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">30</div><div class="text-sm text-gray-400 flex items-center justify-center hover:bg-borderDark w-7 h-7 mx-auto rounded-full cursor-pointer">31</div>
+                    </div>
+                    <div class="mt-4 flex gap-4 text-xs text-gray-400 pt-1 px-2">
+                        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-[#4F85FF] rounded-full block"></span><span>Deadline</span></div>
+                        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-[#FF4C4C] rounded-full block"></span><span>Urgent</span></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="flex justify-between items-end mb-4"><h2 class="text-lg font-bold">Upcoming Events</h2></div>
+                <div class="bg-surface border border-borderDark rounded-2xl p-8 flex items-center justify-center h-[120px]"><span class="text-sm text-gray-500">No upcoming events</span></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const ALLOWED_EMAIL = "adith.25bcs10172@sst.scaler.com";
+        const REQUIRED_PASSWORD = "Student123!@#";
+
+        const subjects = [
+            "Fundamental Data Structures & Applications",
+            "Computer Networks",
+            "Building Web Application using MERN",
+            "Classical Machine Learning"
+        ];
+
+        const hardcodedData = {
+            "Fundamental Data Structures & Applications": [
+                { date: "Oct 1, 2026", name: "FDSA: Binary Trees 1", status: "Present" },
+                { date: "Sep 30, 2026", name: "FDSA: Queues", status: "Present" },
+                { date: "Sep 29, 2026", name: "FDSA Lab 11", status: "Present" },
+                { date: "Sep 28, 2026", name: "FDSA: Stacks 2", status: "Present" },
+                { date: "Sep 24, 2026", name: "FDSA Lab 10", status: "Present" },
+                { date: "Sep 23, 2026", name: "FDSA: Stacks 1", status: "Present" },
+                { date: "Sep 22, 2026", name: "FDSA Lab 9", status: "Present" },
+                { date: "Sep 21, 2026", name: "FDSA: Linked List 3", status: "Present" },
+                { date: "Sep 17, 2026", name: "FDSA Lab 8", status: "Present" },
+                { date: "Sep 16, 2026", name: "FDSA: Linked List 2", status: "Present" },
+                { date: "Sep 15, 2026", name: "Mid Term Discussion", status: "Present" },
+                { date: "Sep 8, 2026", name: "FDSA Lab 7", status: "Present" },
+                { date: "Sep 7, 2026", name: "FDSA Lab 6", status: "Present" },
+                { date: "Sep 3, 2026", name: "FDSA: Linked List 1", status: "Present" },
+                { date: "Sep 2, 2026", name: "FDSA: Hashing 2", status: "Present" },
+                { date: "Sep 1, 2026", name: "FDSA Lab 5", status: "Present" },
+                { date: "Aug 31, 2026", name: "FDSA: Hashing 1", status: "Absent" },
+                { date: "Aug 27, 2026", name: "FDSA Lab 4", status: "Absent" },
+                { date: "Aug 26, 2026", name: "FDSA Lab 3", status: "Absent" },
+                { date: "Aug 25, 2026", name: "FDSA: Binary Search 2", status: "Absent" },
+                { date: "Aug 24, 2026", name: "FDSA Lab 2", status: "Absent" },
+                { date: "Aug 20, 2026", name: "FDSA: Binary Search 1", status: "Present" },
+                { date: "Aug 19, 2026", name: "FDSA Lab 1", status: "Present" },
+                { date: "Aug 18, 2026", name: "FDSA: Arrays", status: "Present" },
+                { date: "Aug 13, 2026", name: "Bit Manipulation 2", status: "Present" },
+                { date: "Aug 12, 2026", name: "Bit Manipulation 1", status: "Present" }
+            ],
+            "Computer Networks": [
+                { date: "Oct 1, 2026", name: "TCP, UDP and Socket Programming II", status: "Present" },
+                { date: "Sep 28, 2026", name: "TCP, UDP and Socket Programming", status: "Present" },
+                { date: "Sep 24, 2026", name: "DNS and Internet Applications Continued", status: "Present" },
+                { date: "Sep 21, 2026", name: "DNS and Internet Applications", status: "Present" },
+                { date: "Sep 17, 2026", name: "Routing Protocols", status: "Present" },
+                { date: "Sep 10, 2026", name: "Routing and Forwarding II", status: "Present" },
+                { date: "Sep 7, 2026", name: "Routing and Forwarding I", status: "Present" },
+                { date: "Sep 3, 2026", name: "Graph Algorithms for Networking II", status: "Present" },
+                { date: "Aug 31, 2026", name: "Graph Algorithms for Networking", status: "Present" },
+                { date: "Aug 27, 2026", name: "IP Addresses and Subnetting II", status: "Present" },
+                { date: "Aug 24, 2026", name: "IP Addresses and Subnetting I", status: "Present" },
+                { date: "Aug 20, 2026", name: "Network Packets and Layered Communication", status: "Present" },
+                { date: "Aug 13, 2026", name: "Introduction to Computer Networks Followup", status: "Present" },
+                { date: "Aug 10, 2026", name: "Introduction to Computer Networks", status: "Present" }
+            ],
+            "Building Web Application using MERN": [
+                { date: "Sep 30, 2026", name: "MERN-15: Project - Build a Social Media App-11", status: "Present" },
+                { date: "Sep 29, 2026", name: "MERN-14: Project - Build a Social Media App-10", status: "Present" },
+                { date: "Sep 25, 2026", name: "MERN-13: Project - Build a Social Media App-9", status: "Present" },
+                { date: "Sep 23, 2026", name: "MERN-12: Project - Build a Social Media App-8", status: "Present" },
+                { date: "Sep 22, 2026", name: "MERN-11: Project - Build a Social Media App-7", status: "Present" },
+                { date: "Sep 16, 2026", name: "MERN-10: Project - Build a Social Media App-6", status: "Present" },
+                { date: "Sep 15, 2026", name: "MERN-9: Project - Build a Social Media App-5", status: "Present" },
+                { date: "Sep 9, 2026", name: "MERN-8: Project - Build a Social Media App-4", status: "Present" },
+                { date: "Sep 8, 2026", name: "MERN-7: Project - Build a Social Media App-3", status: "Present" },
+                { date: "Sep 2, 2026", name: "Project - Build a Social Media App-2", status: "Present" },
+                { date: "Sep 1, 2026", name: "MERN-5: Project - Build a Social Media App-1", status: "Present" },
+                { date: "Aug 26, 2026", name: "MERN-4: MVC Architecture", status: "Absent" },
+                { date: "Aug 25, 2026", name: "MERN-3: Intro to MongoDB and CRUD operation", status: "Absent" },
+                { date: "Aug 19, 2026", name: "Full-Stack (MERN) Lab-2", status: "Present" },
+                { date: "Aug 18, 2026", name: "MERN-2: Introduction to Express", status: "Present" },
+                { date: "Aug 12, 2026", name: "Full-Stack (MERN) Lab-1", status: "Present" },
+                { date: "Aug 11, 2026", name: "MERN-1: Intro to node.js and Backend development", status: "Present" }
+            ],
+            "Classical Machine Learning": [
+                { date: "Sep 19, 2026", name: "Boosting (GBM / XGBoost intro)", status: "Present" },
+                { date: "Sep 19, 2026", name: "Bagging & Random Forest", status: "Present" },
+                { date: "Sep 18, 2026", name: "Decision Trees 2", status: "Present" },
+                { date: "Sep 17, 2026", name: "Decision Trees 1", status: "Present" },
+                { date: "Sep 12, 2026", name: "Lab Session 1", status: "Present" },
+                { date: "Sep 11, 2026", name: "k-Nearest Neighbours", status: "Present" },
+                { date: "Sep 9, 2026", name: "Logistic Regression, Metrics & Imbalance", status: "Present" },
+                { date: "Sep 5, 2026", name: "Regularization & Cross-Validation", status: "Present" },
+                { date: "Sep 4, 2026", name: "Bias-Variance & Polynomial Regression", status: "Present" },
+                { date: "Aug 22, 2026", name: "Linear Regression assumptions", status: "Absent" },
+                { date: "Aug 21, 2026", name: "Linear Regression deep dive", status: "Present" },
+                { date: "Aug 13, 2026", name: "Intro to Classical ML", status: "Present" }
+            ]
+        };
+
+        /* --- AUTH & INITIALIZATION LOGIC --- */
+        function checkAuth() {
+            const isAuthenticated = sessionStorage.getItem("isLoggedIn") === "true";
+            const loginOverlay = document.getElementById("loginOverlay");
+
+            if (isAuthenticated) {
+                if (loginOverlay) loginOverlay.style.display = "none";
+                initApp();
+            } else {
+                if (loginOverlay) loginOverlay.style.display = "flex";
+            }
+        }
+
+        function handleHardcodedLogin(e) {
+            e.preventDefault();
+            const emailInput = document.getElementById("loginEmail").value.trim();
+            const passwordInput = document.getElementById("loginPassword").value;
+            const errorDiv = document.getElementById("loginError");
+
+            const isEmailValid = emailInput.toLowerCase() === ALLOWED_EMAIL.toLowerCase();
+            const isPasswordValid = passwordInput === REQUIRED_PASSWORD;
+
+            if (isEmailValid && isPasswordValid) {
+                sessionStorage.setItem("isLoggedIn", "true");
+                errorDiv.classList.add("hidden");
+                checkAuth();
+            } else {
+                if (!isEmailValid && !isPasswordValid) {
+                    errorDiv.textContent = "Access Denied: Invalid email and password.";
+                } else if (!isEmailValid) {
+                    errorDiv.textContent = "Access Denied: Email not authorized.";
+                } else {
+                    errorDiv.textContent = "Access Denied: Incorrect password.";
+                }
+                errorDiv.classList.remove("hidden");
+            }
+        }
+
+        function handleSignOut() {
+            document.getElementById('userDropdownMenu').classList.add('hidden');
+            sessionStorage.removeItem("isLoggedIn");
+            checkAuth();
+        }
+
+        function initApp() {
+            const subjectSelect = document.getElementById('filter-subject');
+            if (subjectSelect && subjectSelect.options.length === 0) {
+                subjects.forEach(sub => {
+                    const option = document.createElement('option');
+                    option.value = sub;
+                    option.textContent = sub;
+                    subjectSelect.appendChild(option);
+                });
+            }
+            
+            setupUserMenuDropdown();
+            renderDashboardCards();
+            switchView('dashboard');
+        }
+
+        /* --- USER DROPDOWN LOGIC --- */
+        function setupUserMenuDropdown() {
+            const userAvatarBtn = document.getElementById('userAvatarBtn');
+            const userDropdownMenu = document.getElementById('userDropdownMenu');
+            const userMenuWrapper = document.getElementById('userMenuWrapper');
+
+            if (userAvatarBtn && userDropdownMenu && userMenuWrapper) {
+                userAvatarBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    userDropdownMenu.classList.toggle('hidden');
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!userMenuWrapper.contains(e.target)) {
+                        userDropdownMenu.classList.add('hidden');
+                    }
+                });
+            }
+        }
+
+        function handleManageAccount() {
+            document.getElementById('userDropdownMenu').classList.add('hidden');
+            alert("Navigating to Account Management...");
+        }
+
+        function toggleTeamworkDetails() {
+            const details = document.getElementById('teamwork-details');
+            const caret = document.getElementById('teamwork-caret');
+            if (details.classList.contains('hidden')) {
+                details.classList.remove('hidden');
+                caret.classList.remove('ph-caret-down');
+                caret.classList.add('ph-caret-up');
+            } else {
+                details.classList.add('hidden');
+                caret.classList.remove('ph-caret-up');
+                caret.classList.add('ph-caret-down');
+            }
+        }
+
+        function renderDashboardCards() {
+            const container = document.getElementById('dashboard-cards-container');
+            container.innerHTML = ''; 
+
+            subjects.forEach(subject => {
+                const records = hardcodedData[subject] || [];
+                const total = records.length;
+                const attended = records.filter(r => r.status === 'Present').length;
+                const missed = records.filter(r => r.status === 'Absent').length;
+                const percentage = total === 0 ? "0%" : Math.round((attended / total) * 100) + "%";
+
+                const cardHTML = `
+                <div class="bg-surface border border-borderDark rounded-2xl flex flex-col overflow-hidden">
+                    <div class="p-8 flex flex-col items-center justify-center min-h-[140px]">
+                        <span class="text-5xl font-bold mb-3">${percentage}</span>
+                        <span class="text-xs text-gray-400 font-medium text-center">${subject}</span>
+                    </div>
+                    <div class="grid grid-cols-3 border-t border-borderDark bg-bgDark/50">
+                        <div class="py-3 flex flex-col items-center border-r border-borderDark">
+                            <span class="text-lg font-bold">${total}</span>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-wider">Total</span>
+                        </div>
+                        <div class="py-3 flex flex-col items-center border-r border-borderDark">
+                            <span class="text-lg font-bold">${attended}</span>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-wider">Attended</span>
+                        </div>
+                        <div class="py-3 flex flex-col items-center">
+                            <span class="text-lg font-bold text-[#FF4C4C]">${missed}</span>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-wider">Missed</span>
+                        </div>
+                    </div>
+                </div>`;
+                
+                container.innerHTML += cardHTML;
+            });
+        }
+
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+            
+            ['dashboard', 'announcements', 'attendance', 'face-photos', 'results', 'seating', 'credits', 'immersion'].forEach(id => {
+                const el = document.getElementById(`nav-${id}`);
+                if(el) {
+                    el.classList.remove('bg-navActiveBg', 'text-navActiveText');
+                    el.classList.add('text-navInactiveText');
+                }
+            });
+
+            document.getElementById(`view-${viewName}`).style.display = 'block';
+            
+            const activeNav = document.getElementById(`nav-${viewName}`);
+            if(activeNav) {
+                activeNav.classList.add('bg-navActiveBg', 'text-navActiveText');
+                activeNav.classList.remove('text-navInactiveText');
+            }
+
+            const rightSidebar = document.getElementById('right-sidebar');
+            if(viewName === 'attendance' || viewName === 'face-photos' || viewName === 'results' || viewName === 'seating') {
+                rightSidebar.style.display = 'none';
+                if (viewName === 'attendance') {
+                    renderAttendance();
+                }
+            } else {
+                rightSidebar.style.display = 'flex';
+            }
+        }
+
+        function renderAttendance() {
+            const subject = document.getElementById('filter-subject').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            
+            const allRecords = hardcodedData[subject] || [];
+            
+            const filteredRecords = allRecords.filter(record => {
+                if(statusFilter === "All Status") return true;
+                return record.status === statusFilter;
+            });
+
+            const total = allRecords.length;
+            const attended = allRecords.filter(r => r.status === 'Present').length;
+            const missed = allRecords.filter(r => r.status === 'Absent').length;
+            const rate = total === 0 ? "0%" : ((attended / total) * 100).toFixed(2).replace(/\.00$/, '') + "%";
+            
+            document.getElementById('metric-total').textContent = total;
+            document.getElementById('metric-rate').textContent = rate;
+            document.getElementById('metric-missed').textContent = missed;
+            document.getElementById('metric-late').textContent = 0; 
+            document.getElementById('metric-streak').textContent = 0; 
+
+            const tbody = document.getElementById('attendance-tbody');
+            const emptyState = document.getElementById('attendance-empty');
+            
+            tbody.innerHTML = '';
+            
+            if(filteredRecords.length === 0) {
+                document.querySelector('table').parentElement.style.display = 'none';
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                document.querySelector('table').parentElement.style.display = 'block';
+
+                filteredRecords.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.className = "border-b border-borderDark hover:bg-white/[0.02] transition-colors";
+                    
+                    const pillClass = record.status === 'Present' 
+                        ? 'bg-statusPresentBg text-statusPresentText border border-statusPresentText/20' 
+                        : 'bg-statusAbsentBg text-statusAbsentText border border-statusAbsentText/20';
+
+                    row.innerHTML = `
+                        <td class="py-4 px-4 align-top text-sm text-gray-200">
+                            ${record.date}
+                        </td>
+                        <td class="py-4 px-4 text-sm text-gray-300 align-top">${subject}</td>
+                        <td class="py-4 px-4 text-sm text-gray-300 align-top pr-6">${record.name}</td>
+                        <td class="py-4 px-4 align-top text-center">
+                            <span class="${pillClass} rounded-full px-3 py-1 text-[11px] font-medium inline-block min-w-[70px] text-center">
+                                ${record.status}
+                            </span>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+
+        window.onload = checkAuth;
+    </script>
+</body>
+</html>
